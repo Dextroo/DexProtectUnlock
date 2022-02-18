@@ -21,6 +21,7 @@ namespace DexProtect
         public static List<bool> roundVals = new List<bool>() { false, false, false, true };
         public static List<bool> lastVals = new List<bool>() { false, false, false, true };
         public static List<string> roundParams;
+        public static bool inLockedAvatar;
         private static void OnAvatarInstantiate(Player player, GameObject avatar, VRC_AvatarDescriptor descriptor)
         {
             try
@@ -31,11 +32,13 @@ namespace DexProtect
                     if (File.Exists("UserData/DexProtect/" + id + ".key"))
                     {
                         log.Msg("Key detected for avatar ID " + id + ", unlocking...");
+                        inLockedAvatar = true;
                     }
                     else
                     {
                         log.Msg("No key detected for this avatar ID, not unlocking");
-                        throw new Exception();
+                        inLockedAvatar = false;
+                        return;
                     }
                     var keyString = File.ReadAllText("UserData/DexProtect/" + id + ".key", Encoding.Unicode).Split('|').ToList();
                     keyParams = keyString.Skip(5).Select(x => new string(x.Skip(1).ToArray())).ToList();
@@ -73,6 +76,7 @@ namespace DexProtect
         }
         public override void OnUpdate()
         {
+            if (!inLockedAvatar) return;
             try
             {
                 var currentVals = new List<bool>();
