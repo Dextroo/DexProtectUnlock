@@ -45,9 +45,11 @@ namespace DexProtect
                     keyBools = keyString.Skip(5).Select(x => x[0] == '1').ToList();
                     roundParams = keyString.GetRange(1, 4);
                     var roundSplit = keyString[0];
-                    playerAnim = player._vrcplayer.prop_VRCAvatarManager_0
+                    playerAnim = player._vrcplayer
+                        .field_Private_AnimatorControllerManager_0
+                        .field_Private_AvatarAnimParamController_0
                         .field_Private_AvatarPlayableController_0
-                        .field_Private_ArrayOf_AvatarAnimLayer_0[7]
+                        .field_Private_AvatarAnimLayer_7
                         .field_Private_AnimatorControllerPlayable_0;
                     SetParams();
                     playerAnim.SetBool(roundSplit, true);
