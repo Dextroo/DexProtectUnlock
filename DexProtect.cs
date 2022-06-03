@@ -9,19 +9,24 @@ using VRC;
 using VRC.SDKBase;
 using VRC.Playables;
 using UnityEngine.Animations;
+using System.Reflection;
 
 namespace DexProtect
 {
     public class DexProtectUnlock : MelonMod
     {
         public static MelonLogger.Instance log = new MelonLogger.Instance("DexProtect");
-        public static AnimatorControllerPlayable playerAnim;
+        public static AvatarPlayableController playerAnim;
+        public static AnimatorControllerPlayable playerFX;
         public static List<string> keyParams;
         public static List<bool> keyBools;
         public static List<bool> roundVals = new List<bool>() { false, false, false, true };
         public static List<bool> lastVals = new List<bool>() { false, false, false, true };
         public static List<string> roundParams;
         public static bool inLockedAvatar;
+        public static bool refreshParamKeys;
+        public static Il2CppSystem.Collections.Generic.Dictionary<int, AvatarParameter> allParams;
+        public static Dictionary<string, int> paramKeys;
         private static void OnAvatarInstantiate(Player player, GameObject avatar, VRC_AvatarDescriptor descriptor)
         {
             try
@@ -33,6 +38,7 @@ namespace DexProtect
                     {
                         log.Msg("Key detected for avatar ID " + id + ", unlocking...");
                         inLockedAvatar = true;
+                        refreshParamKeys = true;
                     }
                     else
                     {
@@ -45,33 +51,47 @@ namespace DexProtect
                     keyBools = keyString.Skip(5).Select(x => x[0] == '1').ToList();
                     roundParams = keyString.GetRange(1, 4);
                     var roundSplit = keyString[0];
-                    playerAnim = player._vrcplayer
-                        .field_Private_AnimatorControllerManager_0
-                        .field_Private_AvatarAnimParamController_0
-                        .field_Private_AvatarPlayableController_0
-                        .field_Private_AvatarAnimLayer_7
-                        .field_Private_AnimatorControllerPlayable_0;
+                    playerAnim = player._vrcplayer.field_Private_AnimatorControllerManager_0.field_Private_AvatarAnimParamController_0.field_Private_AvatarPlayableController_0;
+                    playerFX = playerAnim.field_Private_AvatarAnimLayer_7.field_Private_AnimatorControllerPlayable_0;
+                    allParams = playerAnim.field_Private_Dictionary_2_Int32_AvatarParameter_0;
                     SetParams();
-                    playerAnim.SetBool(roundSplit, true);
+                    playerFX.SetBool(roundSplit, true);
                 }
             }
             catch { }
         }
         private static void SetParams()
         {
-            for (var i = 0; i < playerAnim.GetParameterCount(); i++)
+            for (var i = 0; i < playerFX.GetParameterCount(); i++)
             {
-                var param = playerAnim.GetParameter(i);
+                var param = playerFX.GetParameter(i);
                 var ind = keyParams.IndexOf(param.name);
                 if (ind != -1)
                 {
                     if (keyBools[ind])
                     {
-                        playerAnim.SetBool(param.name, true);
+                        playerFX.SetBool(param.name, true);
                     }
                     else
                     {
-                        playerAnim.SetBool(param.name, false);
+                        playerFX.SetBool(param.name, false);
+                    }
+                }
+            }
+        }
+        private static void SetParamsLate()
+        {
+            for (var i = 0; i < keyParams.Count; i++)
+            {
+                if (paramKeys.ContainsKey(keyParams[i]))
+                {
+                    if (keyBools[i])
+                    {
+                        allParams[paramKeys[keyParams[i]]].prop_Int32_1 = 1;
+                    }
+                    else
+                    {
+                        allParams[paramKeys[keyParams[i]]].prop_Int32_1 = 0;
                     }
                 }
             }
@@ -82,12 +102,18 @@ namespace DexProtect
             try
             {
                 var currentVals = new List<bool>();
-                for (var i = 0; i < 4; i++) currentVals.Add(playerAnim.GetBool(roundParams[i]));
+                for (var i = 0; i < 4; i++) currentVals.Add(playerFX.GetBool(roundParams[i]));
                 if (currentVals[0] == roundVals[0] && currentVals[1] == roundVals[1] && currentVals[2] == roundVals[2] && currentVals[3] == roundVals[3] &&
                     (currentVals[0] != lastVals[0] || currentVals[1] != lastVals[1] || currentVals[2] != lastVals[2] || currentVals[3] != lastVals[3]) &&
                     !(lastVals[0] == false && lastVals[1] == false && lastVals[2] == false && lastVals[3] == false))
                 {
-                    SetParams();
+                    if (refreshParamKeys)
+                    {
+                        refreshParamKeys = false;
+                        paramKeys = new Dictionary<string, int>();
+                        foreach (var entry in allParams) paramKeys.Add(entry.Value.field_Private_String_0, entry.Key);
+                    }
+                    SetParamsLate();
                 }
                 lastVals = currentVals;
             }
