@@ -28,6 +28,7 @@ namespace DexProtect
         public static Il2CppSystem.Collections.Generic.Dictionary<int, AvatarParameter> allParams;
         public static Dictionary<string, int> paramKeys;
         public static List<(string, float)> storedParams;
+        public static string lastAvatarId;
         private static void OnAvatarInstantiate(Player player, GameObject avatar, VRC_AvatarDescriptor descriptor)
         {
             try
@@ -48,13 +49,15 @@ namespace DexProtect
                         allParams = playerAnim.field_Private_Dictionary_2_Int32_AvatarParameter_0;
                         SetParams();
                         playerFX.SetBool(roundSplit, true);
-                        if (triggerReset == 2) triggerReset = 0;
+                        if (triggerReset == 2 && lastAvatarId != id) triggerReset = 0;
+                        lastAvatarId = id;
                         inLockedAvatar = true;
                     }
                     else
                     {
                         log.Msg("No key detected for this avatar ID, not unlocking");
                         inLockedAvatar = false;
+                        lastAvatarId = id;
                         return;
                     }
                 }
