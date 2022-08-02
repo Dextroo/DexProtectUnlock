@@ -1,5 +1,5 @@
 Dextro's Avatar Protection System Unlocker
 
-This is a very basic MelonLoader mod intended to write the unlocking parameters for the Avatar Protection System when an avatar is loaded. More details about the Protection System can be found at https://gum.co/DexProtect.
+This was a very basic MelonLoader mod intended to write the unlocking parameters for the Avatar Protection System when an avatar is loaded. More details about the Protection System can be found at https://gum.co/DexProtect.
 
-If local parameter support is added for OSC this mod will become obsolete and the Protection System can operate within VRChat TOS. As for now running this mod is done at your own risk and does violate the TOS. The author assumes no responsibility for action taken against your VRChat account if you use this mod.
+This mod is now OBSOLETE due to the VRChat EAC update, the newest version of the system now uses an altered method to be compatible with OSC. If you are looking here for updates relating to the Protection System, everything you need including the new OSC program is in the latest Gumroad package.
